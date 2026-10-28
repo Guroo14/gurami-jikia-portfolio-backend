@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.contact import ContactCreate, ContactResponse
-from app.services.contact_service import create_contact_message
+from app.services.contact_service import create_contact_message, send_contact_email
 
 router = APIRouter(prefix="/api/contact", tags=["contact"])
 
@@ -19,12 +19,20 @@ def submit_contact(
     db: Session = Depends(get_db),
 ) -> ContactResponse:
     try:
+        send_contact_email(payload)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="The message could not be emailed. Please try again later.",
+        )
+
+    try:
         create_contact_message(db, payload)
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Unable to save your message right now.",
+            detail="Your email was sent, but the message could not be saved.",
         )
 
     return ContactResponse(

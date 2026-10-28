@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     environment: str = "development"
     database_url: str = "sqlite:///./portfolio.db"
     frontend_origins: str = "http://localhost:4200"
+    resend_api_key: str = ""
+    contact_to_email: str = ""
+    resend_from_email: str = "onboarding@resend.dev"
 
     model_config = SettingsConfigDict(
         env_file=".env",
